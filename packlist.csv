@@ -10,7 +10,9 @@
 ,libxinerama
 ,libxft
 ,xwallpaper
+,picom
 ,man-db
+,tree
 ,xclip
 ,acpi
 ,pulseaudio
