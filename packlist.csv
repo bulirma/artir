@@ -23,6 +23,8 @@
 ,openssh-openrc
 ,python
 ,sxiv
+,zathura
+,zathura-pdf-mupdf
 ,mpv
 ,htop
 ,unzip
