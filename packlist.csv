@@ -20,7 +20,6 @@
 ,pamixer
 ,neovim
 ,openssh
-,openssh-openrc
 ,python
 ,sxiv
 ,zathura
@@ -30,6 +29,8 @@
 ,unzip
 ,firefox
 ,ranger
+,scrot
+,slock
 ,xorg-xbacklight
 g,https://github.com/bulirma/dmenu.git
 g,https://github.com/bulirma/dwm.git
