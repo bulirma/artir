@@ -1,4 +1,5 @@
 ,ttf-liberation
+,ttf-linux-libertine
 ,rxvt-unicode
 ,xorg-server
 ,xorg-drivers
@@ -20,6 +21,7 @@
 ,pamixer
 ,neovim
 ,openssh
+,lua
 ,python
 ,sxiv
 ,zathura
