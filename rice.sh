@@ -120,6 +120,15 @@ install_dotfiles "$dotfiles_repo"
 sed -i "/#artir/d" /etc/sudoers
 echo "%wheel ALL=(ALL) ALL" >>/etc/sudoers
 #echo "%wheel ALL=(ALL) NOPASSWD: /usr/bin/shutdown,/usr/bin/reboot"
+
+[ ! -f /etc/X11/xorg.conf.d/40-libinput.conf ] && printf 'Section "InputClass"
+        Identifier "libinput touchpad catchall"
+        MatchIsTouchpad "on"
+        MatchDevicePath "/dev/input/event*"
+        Driver "libinput"
+	Option "Tapping" "on"
+EndSection' > /etc/X11/xorg.conf.d/40-libinput.conf
+
 dialog --title "Installation complete" --msgbox "Installation was successful. You can now relogin as new user and execute startx to enjoy simple desktop experience." 15 75
 clear
 
