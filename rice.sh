@@ -3,6 +3,14 @@
 dotfiles_repo="https://github.com/bulirma/dotfiles.git"
 pkg_list="https://raw.githubusercontent.com/bulirma/artir/main/packlist.csv"
 
+while getopts ":d:p:h" o; do case "${o}" in
+	h) printf 'Optional arguments:\n\t-d: dotfiles repository \n\t-p: package list in csv\n' && exit 0 ;;
+	d) dotfiles_repo=${OPTARG} || exit 1 ;;
+	p) pkg_list=${OPTARG} ;;
+	*) printf 'Invalid option: -%s\n' "$OPTARG" && exit 1 ;;
+esac done
+
+
 exit_with_error() {
 	clear
 	echo "$1" >&2
@@ -57,13 +65,12 @@ install_make_git_pkg() {
 install_pkgs() {
 	sudo -u "$uname" mkdir -p "/home/$uname/.local"
 	sudo -u "$uname" mkdir -p "/home/$uname/.local/src"
-	#install_aur_pkg_manually yay
 	list_file="$(mktemp)"
-	curl -Ls "$1" >"$list_file"
+	[ -f "$1" ] && cp "$1" "$list_file" || curl -Ls "$1" >"$list_file"
 	total="$(wc -l "$list_file" | cut -d' ' -f1)"
 	counter=1
 	while IFS=, read -r type pkg; do
-		dialog --title "Package installation" --infobox "Installing $pkg ($counter of $total)." 5 60
+		dialog --title "Package installation" --infobox "Installing $pkg ($counter/$total)." 5 60
 		case "$type" in
 			"a") install_aur_pkg "$pkg" ;;
 			"g") install_make_git_pkg "$pkg" ;;
@@ -109,20 +116,26 @@ setup_user() {
 	check_user_existence "$uname" && mod_user "$uname" || add_user "$uname" || return 1
 }
 
+
 pacman --noconfirm --needed -Sy dialog || exit_with_error "You must be connected to internet and run this script as root."
 dialog --title "System rice installation" --yes-label "Start" --no-label "Cancel" --yesno "This script will rice your system. It should be executed on freshly installed base Artix linux system, otherwise something could go wrong (e.g. overwriting or corrupting important files)." 15 75 || exit_with_error "User exited."
+
 dialog --title "Status" --infobox "Configuring pacman and installing some basic packages." 10 65
 enable_arch_repos
 install_base
 system_beep_off
+
 setup_user || exit_with_error "User exited."
+
 dialog --title "Status" --infobox "Getting ready for installing packages." 10 65
 echo "%wheel ALL=(ALL) NOPASSWD: ALL #artir" >>/etc/sudoers
+sed -i "s/-j2/-j$(nproc)/;/^#MAKEFLAGS/s/^#//" /etc/makepkg.conf
 install_yay || 
 	dialog --title "Installation error" --yes-label "Continue" --no-label "Abort" --yesno "Yay installation failed. Do you wish to continue?" 15 75 || 
 	exit_with_error "User exited."
 install_pkgs "$pkg_list"
 install_dotfiles "$dotfiles_repo"
+rm -f /home/$uname/LICENSE /home/$uname/README.md
 sed -i "/#artir/d" /etc/sudoers
 echo "%wheel ALL=(ALL) ALL" >>/etc/sudoers
 #echo "%wheel ALL=(ALL) NOPASSWD: /usr/bin/shutdown,/usr/bin/reboot"
