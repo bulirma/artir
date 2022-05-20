@@ -33,10 +33,13 @@ install_base() {
 	done
 }
 
-install_aur_pkg_manually() {
-	sudo -u "$uname" mkdir -p "/home/$uname/.local/src/$1"
-	sudo -u "$uname" git clone --depth 1 "https://aur.archlinux.org/$1.git" "/home/$uname/.local/src/$1" >/dev/null 2>&1
-	sudo -u "$uname" -D "/home/$uname/.local/src/$1" makepkg --noconfirm -si >/dev/null 2>&1
+install_yay() {
+	sudo -u "$uname" mkdir -p "/home/$uname/.local"
+	sudo -u "$uname" mkdir -p "/home/$uname/.local/src"
+	sudo -u "$uname" mkdir -p "/home/$uname/.local/src/yay"
+	sudo -u "$uname" git clone --depth 1 "https://aur.archlinux.org/yay.git" "/home/$uname/.local/src/yay" >/dev/null 2>&1 ||
+		{ cd "/home/$uname/.local/src/yay" || return 1; sudo -u "$uname" git pull --force origin master; }
+	sudo -u "$uname" -D "/home/$uname/.local/src/yay" makepkg --noconfirm -si >/dev/null 2>&1
 }
 
 install_aur_pkg() {
@@ -107,7 +110,7 @@ setup_user() {
 }
 
 pacman --noconfirm --needed -Sy dialog || exit_with_error "You must be connected to internet and run this script as root."
-dialog --title "System rice installation" --yes-label "Start" --no-label "Cancel" --yesno "This script will rice your system. It should be executed on freshly installed base Artix linux system, otherwise something could go wrong (e.g. overwriting ot corrupting important files)." 15 75 || exit_with_error "User exited."
+dialog --title "System rice installation" --yes-label "Start" --no-label "Cancel" --yesno "This script will rice your system. It should be executed on freshly installed base Artix linux system, otherwise something could go wrong (e.g. overwriting or corrupting important files)." 15 75 || exit_with_error "User exited."
 dialog --title "Status" --infobox "Configuring pacman and installing some basic packages." 10 65
 enable_arch_repos
 install_base
@@ -115,6 +118,9 @@ system_beep_off
 setup_user || exit_with_error "User exited."
 dialog --title "Status" --infobox "Getting ready for installing packages." 10 65
 echo "%wheel ALL=(ALL) NOPASSWD: ALL #artir" >>/etc/sudoers
+install_yay || 
+	dialog --title "Installation error" --yes-label "Continue" --no-label "Abort" --yesno "Yay installation failed. Do you wish to continue?" 15 75 || 
+	exit_with_error "User exited."
 install_pkgs "$pkg_list"
 install_dotfiles "$dotfiles_repo"
 sed -i "/#artir/d" /etc/sudoers

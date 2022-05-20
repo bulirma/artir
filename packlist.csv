@@ -2,7 +2,6 @@
 ,ttf-linux-libertine
 ,rxvt-unicode
 ,xorg-server
-,xorg-drivers
 ,xorg-xinit
 ,xorg-xsetroot
 ,xorg-xprop
@@ -22,7 +21,9 @@
 ,neovim
 ,openssh
 ,lua
+,go
 ,python
+,shellcheck
 ,sxiv
 ,zathura
 ,zathura-pdf-mupdf
@@ -30,9 +31,10 @@
 ,htop
 ,unzip
 ,firefox
-,ranger
 ,scrot
 ,slock
 ,xorg-xbacklight
+a,lf-git
+a,sc-im
 g,https://github.com/bulirma/dmenu.git
 g,https://github.com/bulirma/dwm.git
