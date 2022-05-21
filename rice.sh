@@ -36,35 +36,32 @@ install_pkg() {
 }
 
 install_base() {
-	for pkg in base-devel git curl; do
+	for pkg in base-devel git curl zsh go; do
 		install_pkg "$pkg"
 	done
 }
 
 install_yay() {
-	sudo -u "$uname" mkdir -p "/home/$uname/.local"
-	sudo -u "$uname" mkdir -p "/home/$uname/.local/src"
-	sudo -u "$uname" mkdir -p "/home/$uname/.local/src/yay"
-	sudo -u "$uname" git clone --depth 1 "https://aur.archlinux.org/yay.git" "/home/$uname/.local/src/yay" >/dev/null 2>&1 ||
-		{ cd "/home/$uname/.local/src/yay" || return 1; sudo -u "$uname" git pull --force origin master; }
-	sudo -u "$uname" -D "/home/$uname/.local/src/yay" makepkg --noconfirm -si >/dev/null 2>&1
+	sudo -u "$username" mkdir -p "/home/$username/.local/src"
+	sudo -u "$username" git clone --depth 1 "https://aur.archlinux.org/yay.git" "/home/$username/.local/src/yay" >/dev/null 2>&1 ||
+		{ cd "/home/$username/.local/src/yay" || return 1; sudo -u "$username" git pull --force origin master; }
+	sudo -u "$username" -D "/home/$username/.local/src/yay" makepkg --noconfirm -si >/dev/null 2>&1
 }
 
 install_aur_pkg() {
-	sudo -u "$uname" yay --noconfirm -S "$1" >/dev/null 2>&1
+	sudo -u "$username" yay --noconfirm -S "$1" >/dev/null 2>&1
 }
 
 install_make_git_pkg() {
 	pkg="$(basename "$1" ".git")"
-	sudo -u "$uname" mkdir -p "/home/$uname/.local/src/$pkg"
-	sudo -u "$uname" git clone --depth 1 "$1" "/home/$uname/.local/src/$pkg" >/dev/null 2>&1
-	make -C "/home/$uname/.local/src/$pkg" >/dev/null 2>&1
-	make -C "/home/$uname/.local/src/$pkg" install >/dev/null 2>&1
+	sudo -u "$username" mkdir -p "/home/$username/.local/src/$pkg"
+	sudo -u "$username" git clone --depth 1 "$1" "/home/$username/.local/src/$pkg" >/dev/null 2>&1
+	make -C "/home/$username/.local/src/$pkg" >/dev/null 2>&1
+	make -C "/home/$username/.local/src/$pkg" install >/dev/null 2>&1
 }
 
 install_pkgs() {
-	sudo -u "$uname" mkdir -p "/home/$uname/.local"
-	sudo -u "$uname" mkdir -p "/home/$uname/.local/src"
+	sudo -u "$username" mkdir -p "/home/$username/.local/src"
 	list_file="$(mktemp)"
 	[ -f "$1" ] && cp "$1" "$list_file" || curl -Ls "$1" >"$list_file"
 	total="$(wc -l "$list_file" | cut -d' ' -f1)"
@@ -81,24 +78,24 @@ install_pkgs() {
 }
 
 install_dotfiles() {
-	tmp_dir="$(sudo -u "$uname" mktemp -d)"
-	sudo -u "$uname" git clone --depth 1 "$1" "$tmp_dir" >/dev/null 2>&1
-	sudo -u "$uname" cp -rfT "$tmp_dir" "/home/$uname"
+	tmp_dir="$(sudo -u "$username" mktemp -d)"
+	sudo -u "$username" git clone --depth 1 "$1" "$tmp_dir" >/dev/null 2>&1
+	sudo -u "$username" cp -rfT "$tmp_dir" "/home/$username"
 }
 
 check_user_existence() {
 	id -u "$1" >/dev/null 2>&1 &&
-	dialog --colors --title "Warning" --yes-label "Continue" --no-label "Abort" --yesno "User $1 already exists. If you choose to continue, files in your home directory can be overwritten." 15 75 || return 1
+	dialog --colors --title "Warning" --yes-label "Continue" --no-label "Abort" --yesno "User $1 already exists. If you choose to continue, files in your home directory can be overwritten." 12 64 || return 1
 }
 
 add_user() {
-	useradd -mG wheel "$1" >/dev/null 2>&1 || return 1
-	pw="$(dialog --no-cancel --passwordbox "Type your password:" 15 75 3>&1 1>&2 2>&3 3>&1)"
-	pwconfirm="$(dialog --no-cancel --passwordbox "Retype your password:" 15 75 3>&1 1>&2 2>&3 3>&1)"
+	useradd -mG wheel -s /bin/zsh "$1" >/dev/null 2>&1 || return 1
+	pw="$(dialog --no-cancel --passwordbox "Type your password:" 8 48 3>&1 1>&2 2>&3 3>&1)"
+	pwconfirm="$(dialog --no-cancel --passwordbox "Retype your password:" 8 48 3>&1 1>&2 2>&3 3>&1)"
 	while [ "$pw" != "$pwconfirm" ]; do
 		unset pwconfirm
-		pw="$(dialog --no-cancel --passwordbox "Passwords don't match. Type your password again:" 15 75 3>&1 1>&2 2>&3 3>&1)"
-		pwconfirm="$(dialog --no-cancel --passwordbox "Retype your password:" 15 75 3>&1 1>&2 2>&3 3>&1)"
+		pw="$(dialog --no-cancel --passwordbox "Passwords don't match. Type your password again:" 8 48 3>&1 1>&2 2>&3 3>&1)"
+		pwconfirm="$(dialog --no-cancel --passwordbox "Retype your password:" 8 48 3>&1 1>&2 2>&3 3>&1)"
 	done
 	echo "$1:$pw" | chpasswd
 	unset pw pwconfirm
@@ -109,33 +106,38 @@ mod_user() {
 }
 
 setup_user() {
-	uname="$(dialog --no-cancel --inputbox "Pick your username." 15 75 3>&1 1>&2 2>&3 3>&1)"
-	while ! echo "$uname" | grep -q "^[a-zA-Z_][a-zA-Z0-9_-]*$"; do
-		uname="$(dialog --no-cancel --inputbox "Chosen username is not valid. Try to use lower-case and upper-case letters, digits, underscore or hyphen." 15 75 3>&1 1>&2 2>&3 3>&1)"
+	username="$(dialog --no-cancel --inputbox "Pick your username." 8 48 3>&1 1>&2 2>&3 3>&1)"
+	while ! echo "$username" | grep -q "^[a-zA-Z_][a-zA-Z0-9_-]*$"; do
+		username="$(dialog --no-cancel --inputbox "Chosen username is not valid. Try to use lower-case and upper-case letters, digits, underscore or hyphen." 12 64 3>&1 1>&2 2>&3 3>&1)"
 	done
-	check_user_existence "$uname" && mod_user "$uname" || add_user "$uname" || return 1
+	check_user_existence "$username" && mod_user "$username" || add_user "$username" || return 1
+}
+
+switch_to_zsh() {
+	chsh -s /bin/zsh "$username" >/dev/null 2>&1
+	sudo -u "$username" mkdir -p "/home/$username/.cache/zsh"
 }
 
 
 pacman --noconfirm --needed -Sy dialog || exit_with_error "You must be connected to internet and run this script as root."
-dialog --title "System rice installation" --yes-label "Start" --no-label "Cancel" --yesno "This script will rice your system. It should be executed on freshly installed base Artix linux system, otherwise something could go wrong (e.g. overwriting or corrupting important files)." 15 75 || exit_with_error "User exited."
+dialog --title "System rice installation" --yes-label "Start" --no-label "Cancel" --yesno "This script will rice your system. It should be executed on freshly installed base Artix linux system, otherwise something could go wrong (e.g. overwriting or corrupting important files)." 12 72 || exit_with_error "User exited."
 
-dialog --title "Status" --infobox "Configuring pacman and installing some basic packages." 10 65
+dialog --title "Status" --infobox "Configuring pacman and installing some basic packages needed by this script. It might take a while." 8 64
 enable_arch_repos
 install_base
 system_beep_off
 
 setup_user || exit_with_error "User exited."
 
-dialog --title "Status" --infobox "Getting ready for installing packages." 10 65
+dialog --title "Status" --infobox "Getting ready for installing packages." 6 64
 echo "%wheel ALL=(ALL) NOPASSWD: ALL #artir" >>/etc/sudoers
 sed -i "s/-j2/-j$(nproc)/;/^#MAKEFLAGS/s/^#//" /etc/makepkg.conf
 install_yay || 
-	dialog --title "Installation error" --yes-label "Continue" --no-label "Abort" --yesno "Yay installation failed. Do you wish to continue?" 15 75 || 
+	dialog --title "Installation error" --yes-label "Continue" --no-label "Abort" --yesno "Yay installation failed. Do you wish to continue?" 6 64 || 
 	exit_with_error "User exited."
 install_pkgs "$pkg_list"
 install_dotfiles "$dotfiles_repo"
-rm -f /home/$uname/LICENSE /home/$uname/README.md
+rm -f /home/$username/LICENSE /home/$username/README.md
 sed -i "/#artir/d" /etc/sudoers
 echo "%wheel ALL=(ALL) ALL" >>/etc/sudoers
 #echo "%wheel ALL=(ALL) NOPASSWD: /usr/bin/shutdown,/usr/bin/reboot"
@@ -148,7 +150,9 @@ echo "%wheel ALL=(ALL) ALL" >>/etc/sudoers
 	Option "Tapping" "on"
 EndSection' > /etc/X11/xorg.conf.d/40-libinput.conf
 
-dialog --title "Installation complete" --msgbox "Installation was successful. You can now relogin as new user and execute startx to enjoy simple desktop experience." 15 75
+switch_to_zsh
+
+dialog --title "Installation complete" --msgbox "Installation was successful. You can now relogin as new user and execute startx to enjoy simple desktop experience." 8 64
 clear
 
 exit 0

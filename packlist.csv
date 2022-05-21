@@ -21,6 +21,7 @@
 ,pamixer
 ,neovim
 ,openssh
+,zsh
 ,lua
 ,go
 ,python
