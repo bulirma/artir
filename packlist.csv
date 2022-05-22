@@ -10,9 +10,13 @@
 ,xf86-video-intel
 ,libxinerama
 ,libxft
+,udisks2
+,ntfs-3g
+,libnotify
 ,xwallpaper
 ,picom
 ,man-db
+,dunst
 ,tree
 ,xclip
 ,acpi
@@ -21,6 +25,7 @@
 ,pamixer
 ,neovim
 ,openssh
+,rsync
 ,zsh
 ,lua
 ,go
@@ -36,6 +41,7 @@
 ,scrot
 ,slock
 ,xorg-xbacklight
+a,nvim-packer-git
 a,lf-git
 a,sc-im
 g,https://github.com/bulirma/dmenu.git
