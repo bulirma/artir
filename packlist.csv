@@ -1,5 +1,6 @@
 ,ttf-liberation
 ,ttf-linux-libertine
+,noto-fonts-emoji
 ,rxvt-unicode
 ,xorg-server
 ,xorg-xinit
@@ -41,6 +42,7 @@
 ,scrot
 ,slock
 ,xorg-xbacklight
+,awesome
 a,nvim-packer-git
 a,lf-git
 a,sc-im
